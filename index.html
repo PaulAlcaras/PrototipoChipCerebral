@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de App de Mensajería</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f9;
+      margin: 0;
+    }
+    .chat-container {
+      width: 90%;
+      max-width: 400px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    .messages {
+      height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .messages div {
+      margin: 10px 0;
+    }
+    .sender {
+      color: white;
+      background-color: #007bff;
+      padding: 8px 12px;
+      border-radius: 15px;
+      align-self: flex-end;
+      max-width: 70%;
+    }
+    .receiver {
+      color: black;
+      background-color: #eaeaea;
+      padding: 8px 12px;
+      border-radius: 15px;
+      align-self: flex-start;
+      max-width: 70%;
+    }
+    .input-container {
+      display: flex;
+      padding: 10px;
+      background-color: #f4f4f9;
+    }
+    .input-container input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-right: 5px;
+    }
+    .input-container button {
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="messages" id="messages"></div>
+    <div class="input-container">
+      <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    const messagesDiv = document.getElementById("messages");
+
+    // Cargar mensajes almacenados al abrir la página
+    function loadMessages() {
+      const messages = JSON.parse(localStorage.getItem("chatMessages")) || [];
+      messages.forEach(({ sender, text }) => {
+        displayMessage(text, sender);
+      });
+    }
+
+    // Mostrar mensaje en el chat
+    function displayMessage(text, sender) {
+      const messageDiv = document.createElement("div");
+      messageDiv.className = sender === "self" ? "sender" : "receiver";
+      messageDiv.textContent = text;
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll
+    }
+
+    // Enviar mensaje
+    function sendMessage() {
+      const input = document.getElementById("messageInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      // Agregar mensaje enviado al chat
+      displayMessage(text, "self");
+
+      // Guardar mensaje en el almacenamiento local
+      saveMessage("self", text);
+
+      // Simular recepción del otro dispositivo (puedes editar esto)
+      setTimeout(() => {
+        const reply = "Mensaje recibido: " + text;
+        displayMessage(reply, "other");
+        saveMessage("other", reply);
+      }, 1000);
+
+      input.value = ""; // Limpiar input
+    }
+
+    // Guardar mensajes en localStorage
+    function saveMessage(sender, text) {
+      const messages = JSON.parse(localStorage.getItem("chatMessages")) || [];
+      messages.push({ sender, text });
+      localStorage.setItem("chatMessages", JSON.stringify(messages));
+    }
+
+    // Inicializar
+    loadMessages();
+  </script>
+</body>
+</html>
