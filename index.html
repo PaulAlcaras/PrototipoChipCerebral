@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulador de App de Mensajería</title>
+  <title>Chat en Tiempo Real</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -11,8 +11,8 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background-color: #f4f4f9;
       margin: 0;
+      background: #f4f4f9;
     }
     .chat-container {
       width: 90%;
@@ -32,25 +32,25 @@
       margin: 10px 0;
     }
     .sender {
+      background: #007bff;
       color: white;
-      background-color: #007bff;
-      padding: 8px 12px;
-      border-radius: 15px;
-      align-self: flex-end;
+      padding: 10px;
+      border-radius: 10px;
       max-width: 70%;
+      align-self: flex-end;
     }
     .receiver {
+      background: #eaeaea;
       color: black;
-      background-color: #eaeaea;
-      padding: 8px 12px;
-      border-radius: 15px;
-      align-self: flex-start;
+      padding: 10px;
+      border-radius: 10px;
       max-width: 70%;
+      align-self: flex-start;
     }
     .input-container {
       display: flex;
       padding: 10px;
-      background-color: #f4f4f9;
+      background: #f4f4f9;
     }
     .input-container input {
       flex: 1;
@@ -60,10 +60,10 @@
       margin-right: 5px;
     }
     .input-container button {
-      padding: 10px 15px;
-      background-color: #007bff;
+      background: #007bff;
       color: white;
       border: none;
+      padding: 10px 15px;
       border-radius: 5px;
       cursor: pointer;
     }
@@ -73,28 +73,41 @@
   <div class="chat-container">
     <div class="messages" id="messages"></div>
     <div class="input-container">
-      <input type="text" id="messageInput" placeholder="Escribe un mensaje...">
+      <input type="text" id="messageInput" placeholder="Escribe tu mensaje...">
       <button onclick="sendMessage()">Enviar</button>
     </div>
   </div>
-
+  <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.16.0/firebase-database.js"></script>
   <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_AUTH_DOMAIN",
+      databaseURL: "TU_DATABASE_URL",
+      projectId: "TU_PROJECT_ID",
+      storageBucket: "TU_STORAGE_BUCKET",
+      messagingSenderId: "TU_MESSAGING_SENDER_ID",
+      appId: "TU_APP_ID"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
     const messagesDiv = document.getElementById("messages");
 
-    // Cargar mensajes almacenados al abrir la página
-    function loadMessages() {
-      const messages = JSON.parse(localStorage.getItem("chatMessages")) || [];
-      messages.forEach(({ sender, text }) => {
-        displayMessage(text, sender);
-      });
-    }
+    // Escuchar mensajes en tiempo real
+    firebase.database().ref("messages").on("child_added", function(snapshot) {
+      const message = snapshot.val();
+      displayMessage(message.text, message.sender);
+    });
 
-    // Mostrar mensaje en el chat
+    // Mostrar mensaje en la interfaz
     function displayMessage(text, sender) {
-      const messageDiv = document.createElement("div");
-      messageDiv.className = sender === "self" ? "sender" : "receiver";
-      messageDiv.textContent = text;
-      messagesDiv.appendChild(messageDiv);
+      const div = document.createElement("div");
+      div.textContent = text;
+      div.className = sender === "self" ? "sender" : "receiver";
+      messagesDiv.appendChild(div);
       messagesDiv.scrollTop = messagesDiv.scrollHeight; // Auto-scroll
     }
 
@@ -102,33 +115,15 @@
     function sendMessage() {
       const input = document.getElementById("messageInput");
       const text = input.value.trim();
-      if (!text) return;
-
-      // Agregar mensaje enviado al chat
-      displayMessage(text, "self");
-
-      // Guardar mensaje en el almacenamiento local
-      saveMessage("self", text);
-
-      // Simular recepción del otro dispositivo (puedes editar esto)
-      setTimeout(() => {
-        const reply = "Mensaje recibido: " + text;
-        displayMessage(reply, "other");
-        saveMessage("other", reply);
-      }, 1000);
-
-      input.value = ""; // Limpiar input
+      if (text) {
+        firebase.database().ref("messages").push({
+          text,
+          sender: "self"
+        });
+        input.value = "";
+      }
     }
-
-    // Guardar mensajes en localStorage
-    function saveMessage(sender, text) {
-      const messages = JSON.parse(localStorage.getItem("chatMessages")) || [];
-      messages.push({ sender, text });
-      localStorage.setItem("chatMessages", JSON.stringify(messages));
-    }
-
-    // Inicializar
-    loadMessages();
   </script>
 </body>
 </html>
+
